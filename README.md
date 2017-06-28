@@ -9,7 +9,7 @@ This module displays your most recent notes from your Google GMail account.
 ## Installation
 
 1. Navigate to your MagicMirro `modules` directory and execute<br>
-`https://github.com/jclarke0000/MMM-MyNotes.git`
+`git clone https://github.com/jclarke0000/MMM-MyNotes.git`
 2. Enter the new `MMM-MyNotes` directory and execute `npm install`.
 
 ## Authorization
