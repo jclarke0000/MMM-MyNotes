@@ -46,7 +46,7 @@ Module.register('MMM-MyNotes', {
 
     if (d.isSame(today, 'day')) {
       return "Today";
-    } else if (d.isSame(today.subtract(1, 'days'), day)) {
+    } else if (d.isSame(today.subtract(1, 'days'), 'day')) {
       return "Yesterday";
     } else {
       return d.format(this.config.dateFormat);
