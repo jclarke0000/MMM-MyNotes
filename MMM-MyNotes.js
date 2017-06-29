@@ -13,7 +13,7 @@ Module.register('MMM-MyNotes', {
 
     this.sendSocketNotification("MMM-MYNOTES-GET", this.config);
     var self = this;
-    setTimeout(function() {
+    setInterval(function() {
       self.sendSocketNotification("MMM-MYNOTES-GET", self.config);
     }, this.config.pollFrequency);
   },
