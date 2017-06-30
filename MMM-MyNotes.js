@@ -2,7 +2,7 @@ Module.register('MMM-MyNotes', {
 
   defaults: {
     maxNotes: 10,
-    dateFormat: 'MMM D',
+    dateFormat: 'MMMM D',
     pollFrequency: 5 * 60 * 1000, //5 minutes;
     showDatePosted: true,
   },
@@ -45,9 +45,11 @@ Module.register('MMM-MyNotes', {
     var today = moment();
 
     if (d.isSame(today, 'day')) {
-      return "Today";
-    } else if (d.isSame(today.subtract(1, 'days'), 'day')) {
-      return "Yesterday";
+      return "today";
+    } else if (d.isSame(moment(today).subtract(1, 'days'), 'day')) {
+      return "yesterday";
+    } else if (d.isSameOrAfter(moment(today).subtract(5, 'days'), 'day')) {
+      return d.format("dddd");
     } else {
       return d.format(this.config.dateFormat);
     }
@@ -78,7 +80,7 @@ Module.register('MMM-MyNotes', {
       if (self.config.showDatePosted) {      
         var noteDateStamp = document.createElement("span");
         noteDateStamp.classList.add("note-date-stamp");
-        noteDateStamp.innerHTML = self.formatDate(noteObj.dateStamp);
+        noteDateStamp.innerHTML = "Posted " + self.formatDate(noteObj.dateStamp);
         noteContainer.appendChild(noteDateStamp);
       }
 
