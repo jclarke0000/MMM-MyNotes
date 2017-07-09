@@ -1,12 +1,12 @@
 var NodeHelper = require("node_helper");
-var fs = require('fs');
-var google = require('googleapis');
-var googleAuth = require('google-auth-library');
-const base64url = require('base64url');
+var fs = require("fs");
+var google = require("googleapis");
+var googleAuth = require("google-auth-library");
+const base64url = require("base64url");
 
 var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
-    process.env.USERPROFILE) + '/.credentials/';
-var TOKEN_PATH = TOKEN_DIR + 'MMM-MyNotes.json';
+    process.env.USERPROFILE) + "/.credentials/";
+var TOKEN_PATH = TOKEN_DIR + "MMM-MyNotes.json";
 
 var oauth2Client = null;
 var isAuthorized = false;
@@ -25,9 +25,9 @@ module.exports = NodeHelper.create({
   authorize: function(callback) {
 
     // Load client secrets from a local file.
-    fs.readFile(this.path + '/client_secret.json', function processClientSecrets(err, content) {
+    fs.readFile(this.path + "/client_secret.json", function processClientSecrets(err, content) {
       if (err) {
-        console.log('[MMM-MyNotes] Error loading client secret file: ' + err);
+        console.log("[MMM-MyNotes] Error loading client secret file: " + err);
         return;
       }
 
@@ -36,7 +36,7 @@ module.exports = NodeHelper.create({
       // get auth token.
       fs.readFile(TOKEN_PATH, function(err, token) {
         if (err) {
-          console.log('[MMM-MyNotes] No Authorization token.  Please run "node authorise.js" in the MMM-MyNotes directory ' + err);
+          console.log("[MMM-MyNotes] No Authorization token.  Please run \"node authorise.js\" in the MMM-MyNotes directory " + err);
         } else {
 
           var clientSecret = credentials.installed.client_secret;
@@ -49,13 +49,13 @@ module.exports = NodeHelper.create({
           
 
           //get notes label
-          var gmail = google.gmail('v1');
+          var gmail = google.gmail("v1");
           gmail.users.labels.list({
             auth: oauth2Client,
-            userId: 'me',
+            userId: "me",
           }, function(err, response) {
             if (err) {
-              console.log('The API returned an error: ' + err);
+              console.log("[MMM-MyNotes] GMail API returned an error while trying to get Notes label: " + err);
               return;
             }
 
@@ -85,53 +85,58 @@ module.exports = NodeHelper.create({
 
     if (isAuthorized) {
 
-      var gmail = google.gmail('v1');
+      var gmail = google.gmail("v1");
       gmail.users.messages.list({
         auth: oauth2Client,
         labelIds: notesLabelId,
         maxResults: config.maxNotes,
-        userId: 'me',
+        userId: "me",
       }, function(err, response) {
         if (err) {
-          console.log('The API returned an error: ' + err);
+          console.log("[MMM-MyNotes] GMail API returned an error while trying to retrieve notes: " + err);
           return;
         }
 
+        if (response.messages) {
 
-        var notes = new Array();
-        var messagesRetrieved = 0;
+          var notes = new Array();
+          var messagesRetrieved = 0;
 
-        var messageList = response.messages;
-        messageList.forEach(function(message, index) {
+          var messageList = response.messages;
+          messageList.forEach(function(message, index) {
 
-          gmail.users.messages.get({
-            auth: oauth2Client,
-            id: message.id,
-            userId: 'me',
-          }, function(err, msgResponse) {
-            if (err) {
-              console.log("Error retrieving id " + message.id);
-            } else {
+            gmail.users.messages.get({
+              auth: oauth2Client,
+              id: message.id,
+              userId: "me",
+            }, function(err, msgResponse) {
+              if (err) {
+                console.log("[MMM-MyNotes] Error retrieving message id " + message.id);
+              } else {
 
-              var noteObj = {
-                dateStamp: msgResponse.internalDate,
-                noteText: base64url.decode(msgResponse.payload.body.data)
+                var noteObj = {
+                  dateStamp: msgResponse.internalDate,
+                  noteText: base64url.decode(msgResponse.payload.body.data)
+                };
+
+                notes[index] = noteObj;
               }
 
-              notes[index] = noteObj;
-            }
+              messagesRetrieved++;
 
-            messagesRetrieved++;
+              if (messagesRetrieved == messageList.length) {
+                //done.  Send this shit back to the front end
+                moduleInstance.sendSocketNotification("MMM-MYNOTES-RESPONSE", {data: notes});
+              }
 
-            if (messagesRetrieved == messageList.length) {
-              //done.  Send this shit back to the front end
-              moduleInstance.sendSocketNotification('MMM-MYNOTES-RESPONSE', {data: notes});
-            }
+            });
+
 
           });
-
-
-        });
+          
+        } else { //no notes. return an empty array
+          moduleInstance.sendSocketNotification("MMM-MYNOTES-RESPONSE", {data: []});
+        }
 
 
       });
@@ -140,7 +145,7 @@ module.exports = NodeHelper.create({
   },
 
   socketNotificationReceived: function(notification, payload){
-    if (notification === 'MMM-MYNOTES-GET') {
+    if (notification === "MMM-MYNOTES-GET") {
       if (config == null) {      
         config = payload;
       }

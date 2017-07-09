@@ -30,13 +30,18 @@ Module.register('MMM-MyNotes', {
     //only update if a data set is returned.  Otherwise leave stale data on the screen.
     if ( notification === 'MMM-MYNOTES-RESPONSE') {
       this.notesData = payload.data;
-      if (this.loaded) {
+      if (this.notesData.length == 0) {
+        this.loaded = true;
+        this.hide(1000, {lockString: this.identifier});
+      } else if (this.loaded) {
         this.updateDom();      
+        this.show(1000, {lockString: this.identifier});
       } else {
         this.loaded = true;
         this.updateDom(2000);      
       }
     }
+
 
   },
 
